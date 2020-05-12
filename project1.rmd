@@ -1,0 +1,251 @@
+---
+title: "PradeepPoonati_project1"
+author: "pradeep poonati"
+date: "2/23/2020"
+output: word_document
+---
+
+```{r}
+#Libraries Used 
+
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(hrbrthemes)
+library(lubridate)
+library(ggplot2)
+library(reshape2)
+
+
+```
+
+```````{r}
+#importing the raw data(fmarket.csv) in to the R studio 
+market_data<-read.csv("fmarket.csv",stringsAsFactors =FALSE,na.strings="")
+Region_data<-read.csv("RegionsUSA.CSV",stringsAsFactors =FALSE,na.strings="")
+
+grants_data<-read.csv("grants.csv",stringsAsFactors =FALSE,na.strings="")
+
+
+`````
+
+`````{r}
+#data cleaning for required rows 
+Region_data$State<-tolower(Region_data$State)
+
+market_data$State<-tolower(market_data$State)
+market_data$Location<-tolower(market_data$Location)
+
+market_data$Credit[market_data$Credit=="Y"]<-1
+market_data$Credit[market_data$Credit=="N"]<-0
+market_data$Credit<-as.integer(market_data$Credit)
+
+market_data$WIC[market_data$WIC=="Y"]<-1
+market_data$WIC[market_data$WIC=="N"]<-0
+market_data$WIC<-as.integer(market_data$WIC)
+
+market_data$WICcash[market_data$WICcash=="Y"]<-1
+market_data$WICcash[market_data$WICcash=="N"]<-0
+market_data$WICcash<-as.integer(market_data$WICcash)
+
+market_data$SFMNP[market_data$SFMNP=="Y"]<-1
+market_data$SFMNP[market_data$SFMNP=="N"]<-0
+market_data$SFMNP<-as.integer(market_data$SFMNP)
+
+market_data$SNAP[market_data$SNAP=="Y"]<-1
+market_data$SNAP[market_data$SNAP=="N"]<-0
+market_data$SNAP<-as.integer(market_data$SNAP)
+
+
+grants_data$FY2012<-gsub("[[:punct:]]", "", grants_data$FY2012)#removing punctuations
+grants_data$FY2012<-gsub("[[:blank:]]", "", grants_data$FY2012)#removing blanks 
+grants_data$FY2012<-as.integer(grants_data$FY2012)
+
+grants_data$FY2013<-gsub("[[:punct:]]", "", grants_data$FY2013)#removing punctuations
+grants_data$FY2013<-gsub("[[:blank:]]", "", grants_data$FY2013)#removing blanks 
+grants_data$FY2013<-as.integer(grants_data$FY2013)
+
+grants_data$FY2014<-gsub("[[:punct:]]", "", grants_data$FY2014)#removing punctuations
+grants_data$FY2014<-gsub("[[:blank:]]", "", grants_data$FY2014)#removing blanks
+grants_data$FY2014<-as.integer(grants_data$FY2014)
+
+grants_data$FY2015<-gsub("[[:punct:]]", "", grants_data$FY2015)#removing punctuations
+grants_data$FY2015<-gsub("[[:blank:]]", "", grants_data$FY2015)#removing blanks 
+grants_data$FY2015<-as.integer(grants_data$FY2015)
+
+grants_data$FY2016<-gsub("[[:punct:]]", "", grants_data$FY2016)#removing punctuations
+grants_data$FY2016<-gsub("[[:blank:]]", "", grants_data$FY2016)#removing blanks 
+grants_data$FY2016<-as.integer(grants_data$FY2016)
+
+grants_data$FY2017<-gsub("[[:punct:]]", "", grants_data$FY2017)#removing punctuations
+grants_data$FY2017<-gsub("[[:blank:]]", "", grants_data$FY2017)#removing blanks
+grants_data$FY2017<-as.integer(grants_data$FY2017)
+
+grants_data$FY2018<-gsub("[[:punct:]]", "", grants_data$FY2018)#removing punctuations
+grants_data$FY2018<-gsub("[[:blank:]]", "", grants_data$FY2018)#removing blanks 
+grants_data$FY2018<-as.integer(grants_data$FY2018)
+
+grants_data$FY2019<-gsub("[[:punct:]]", "", grants_data$FY2019)#removing punctuations
+grants_data$FY2019<-gsub("[[:blank:]]", "", grants_data$FY2019)#removing blanks 
+grants_data$FY2019<-as.integer(grants_data$FY2019)
+grants_data$State.Agency<-tolower(grants_data$State.Agency)
+``````
+
+``````{r}
+#plot based on geographical location
+
+market_geographical<-market_data%>%select(c("FMID","State"))
+market_state<-market_geographical%>%group_by(State)%>%count(State)%>%arrange(desc(n))
+ggplot(market_state, aes(y = n, x = reorder(State, n),fill=n))+ geom_bar(stat="identity",color="white")+ coord_flip()+ labs(y="Number of Markets", x="States",fill="Number of markets ")+ggtitle("Number of farmer markets in each state ")+theme_bw()+theme(text = element_text(size = 14))+scale_fill_gradient(low="slateblue",high="slateblue4")+theme(plot.title = element_text(hjust = 0.5))
+
+ggsave("glocation.png",height = 7,width = 17.5)
+````
+
+````{r}
+#Graphical analysis by Region 
+
+
+
+#merging region data and farmer market data 
+market_region<-merge(market_geographical,Region_data,by.x = "State",by.y = "State")
+market_region<-market_region%>%group_by(Region)%>%count(Region)
+ggplot(market_region, aes(y = n, x = reorder(Region, n),fill=n))+ geom_bar(stat="identity")+ coord_flip()+ labs(y="Number of Markets", x="Teritories",fill="Markets count")+(ggtitle("Number of farmer markets in each Region "))+theme_minimal()+theme(text = element_text(size = 14))+theme(plot.title = element_text(hjust = 0.5))+scale_fill_gradient(low="pink",high = "maroon")
+ggsave("region.png",height = 7,width = 17.5)
+`````
+
+
+````{r}
+#plot based on residing area 
+market_area<-select(market_data,c("FMID","Location"))
+market_area<-na.omit(market_area%>%group_by(Location)%>%count(Location))%>%arrange(desc(n))
+ggplot(market_area, aes(y = n, x = reorder(Location, n),fill=n))+ geom_bar(stat="identity")+ coord_flip()+ labs(y="Number of Markets", x="Location",fill="Market Count")+(ggtitle("Number of farmer markets in each Location "))+theme(plot.title = element_text(hjust = 0.5))+theme_bw()+theme(plot.title = element_text(hjust = 0.5))+theme(text = element_text(size = 14))+scale_fill_gradient(low="green",high = "darkgreen")
+ggsave("mktlocation.png",height = 7,width = 17.5,dpi = 300)
+`````
+
+````{r}
+#No of markets registered in a year  
+open_year<-na.omit(select(market_data,c("FMID","Season1Date")))
+open_year<-open_year%>%separate(Season1Date, c("Season1Date1","Season1Date2"), sep = "to")%>%select(c(FMID,Season1Date1))
+open_year$Season1Date1<-(mdy(open_year$Season1Date1,quiet = TRUE))
+open_year$Season1Date1<-year(open_year$Season1Date1)
+open_year<-open_year%>%filter(!is.na(Season1Date1))%>%count(Season1Date1)
+ggplot(open_year, aes(x=factor(Season1Date1), y=n,group=n ,color=n,size=n)) +geom_line()+ geom_point()+ggtitle("Markets registered in a year")+labs(y="Number of Markets", x="year",color="Markets",size="Size")+coord_flip()+theme_bw()+theme(text = element_text(size = 14))+theme(plot.title = element_text(hjust = 0.5))
+
+ggsave("year.png",height = 7,width = 17.5,dpi = 300)
+````
+
+````{r}
+#markets offering card payments 
+
+Payment_System<-market_data%>%select("State","Credit","WIC","WICcash","SFMNP","SNAP")%>%group_by(State)%>%summarise(creditacceptingstores=sum(Credit,na.rm = TRUE),WICacceptingstores=sum(WIC,na.rm = TRUE),WICcashacceptingstores=sum(WICcash,na.rm = TRUE),SFMPAcceptingstores=sum(SFMNP,na.rm = TRUE),SNAPAcceptingstores=sum(SNAP,na.rm = TRUE))
+Payment_System<-merge(Payment_System,Region_data,by.x = "State",by.y = "State")
+Payment_System<-Payment_System%>%select(-State)%>%group_by(Region)%>%summarise(WICacceptingStores=sum(WICacceptingstores),SFMPAacceptingStores=sum(SFMPAcceptingstores),CreditacceptingStores=sum(creditacceptingstores),WICCASHacceptingStores=sum(WICcashacceptingstores),SNAPacceptingStores=sum(SNAPAcceptingstores))
+d <- melt(Payment_System, id.vars="Region")
+
+
+
+ggplot(d, aes(value,Region)) + 
+  geom_point() + 
+  stat_smooth() +theme(text = element_text(size = 14))+
+  facet_wrap(~variable)+theme_bw()+theme_minimal()+ggtitle("Markets offering card payments ")+theme(plot.title = element_text(hjust = 0.5))+labs(x="Number of Markets ",y="Region")
+ggsave("payment.png",height = 7,width = 17.5,dpi = 300)
+```
+
+`````{r}
+#Number of stores accepting all kinds of subsidary payment systems
+grant_acceptance<-market_data[c(11,25:28)]
+grant_acceptance <- cbind(grant_acceptance,sum=rowSums(grant_acceptance[2:5]))
+grant_acceptance<-grant_acceptance%>%filter(sum==4)%>%count(State)
+grant_acceptance$nationsaverage<-sum(grant_acceptance$n/52)
+ggplot(grant_acceptance, aes(y =n, x = reorder(State,n),fill=ifelse(n>sum(n/52),"Greater than nations average ","Less than nations average")))+ geom_bar(stat="identity")+ coord_flip()+ labs(y="Number of Markets", x="State",fill="Classification ")+(ggtitle("Number of stores accepting all kinds of subsidary payment systems"))+geom_line(aes(State,nationsaverage,group=nationsaverage,color=nationsaverage))+theme(text = element_text(size = 16))+theme_bw()+theme(plot.title = element_text(hjust = 0.5))
+
+ggsave("garnt acceptance.png",height = 7,width = 17.5,dpi = 300)
+
+````
+
+```{r}
+#count of products in each region 
+products_data<-market_data[c(1,11,29:58)]
+products_data<-products_data%>%gather(key="Products",value = "Availability",-State,-FMID)
+products_data$Products<-tolower(products_data$Products)
+Product_catogery<-read.csv("products .csv",stringsAsFactors =FALSE,na.strings="")
+Product_catogery$Products<-tolower(Product_catogery$Products)
+products_data<-merge(products_data,Product_catogery,by.x = "Products",by.y = "Products")
+products_data<-products_data%>%filter(Availability=="Y")
+products_data<-merge(products_data,Region_data,by.x = "State",by.y = "State")
+products_data<-unique(products_data %>% select(Region,Catogery,FMID))
+products_data<-products_data %>% count(Region,Catogery)
+ggplot(data = products_data, aes(x=Catogery, y=Region, fill=n)) + 
+  geom_tile()+labs(x="Category",y="Region",fill="No of Prodcuts")+theme(text = element_text(size = 14))+theme_bw()+ggtitle("Count of products in each region")+theme(plot.title = element_text(hjust = 0.5))
+
+ggsave("heatmap.png",height = 7,width = 17.5,dpi = 300)
+```
+
+`````{r}
+#sclaing the farmer markets according to the size 
+market_size<-market_data[c(1,29:58)]
+market_size<-market_size%>%gather(key = "PRODCUTS",value = "Product",-FMID)
+market_size<-filter(market_size,Product=="Y")
+market_size<-market_size%>%count(FMID)
+market_size$n<-ceiling(market_size$n/10)
+
+market_size$n[market_size$n=="3"]<-"Large Scale"
+market_size$n[market_size$n=="2"]<-"Medium Scale"
+market_size$n[market_size$n=="1"]<-"Small Scale"
+market_size<-market_size%>%count(n)
+colnames(market_size)<-c("markettype","count")
+
+ggplot(data=market_size, aes(x=markettype, y=count,fill=markettype)) +
+  geom_bar(stat="identity")+
+  geom_text(aes(label=count), vjust=1.6, color="white", size=3.5)+
+  theme_minimal()+labs(y="Number of Markets", x="Market Type",fill="Market Type")+(ggtitle("Number of markets based on scale"))+theme_bw()+theme(plot.title = element_text(hjust = 0.5),legend.position = 'none')
+  theme(text = element_text(size = 14))
+ggsave("Marketsize.png",height = 7,width = 17.5,dpi = 300)
+
+```````
+
+```{r}
+#Number of markets use social media by region
+social_media<-market_data[c(1,11,3:7)]
+social_media<-social_media%>%gather(key = "media",value = "value",-FMID,-State)
+social_media<-filter(social_media,value!="NA")
+social_media<-social_media%>%select(-value)%>%count(State,media)
+social_media<-merge(social_media,Region_data,by.x = "State",by.y = "State")
+
+social_media<-social_media%>%select(c(-1))%>%group_by(Region,media)%>%summarise(marketcount=sum(n))
+
+
+
+ggplot(social_media, aes(x=Region, y=marketcount)) +
+  geom_point(aes(shape=media,color=media),size=5,alpha=0.6)+(ggtitle("Number of markets use social media by region "))+labs(x="Region",y="Market count",fill="Media Type")+theme(text = element_text(size = 14))+coord_flip()+theme_grey()+theme(plot.title = element_text(hjust = 0.5))
+ggsave("sm.png",height = 7,width = 17.5,dpi=300)
+```
+
+
+```{r}
+#senior farmers market nutrition program 
+
+grants_data<-merge(grants_data,Region_data,by.x = "State.Agency",by.y = "State")
+grants_data<-grants_data%>%select(-1)%>%group_by(Region)%>%summarise(FY12=sum(FY2012,na.rm = TRUE),FY13=sum(FY2013,na.rm = TRUE),FY14=sum(FY2014,na.rm = TRUE),FY15=sum(FY2015,na.rm = TRUE),FY16=sum(FY2016,na.rm = TRUE),FY17=sum(FY2017,na.rm = TRUE),FY18=sum(FY2018,na.rm = TRUE),FY19=sum(FY2019,na.rm = TRUE))
+typeof(grants_data$FY2012)
+
+grants_data<-grants_data %>% gather(key="financial_year", value="grants", -Region)
+ggplot(grants_data, aes(Region, grants, group=financial_year, color=financial_year))+geom_line()+geom_point()+coord_flip()+theme_bw()+labs(y="Grants", x="Regions",color="Finacial Year")+(ggtitle("Regionwise SFMNP grants according allocated per year "))+theme(text = element_text(size = 14))+theme(plot.title = element_text(hjust = 0.5))
+
+ggsave("sfmnp.png",height = 7,width = 17.5,dpi=300)
+
+```
+
+```{r}
+#plot of total no of products by each food type 
+
+food_count<-market_data[c(29:58)]
+food_count<-food_count%>%gather(key = "FoodType",value = "Availability")
+food_count<-filter(food_count,Availability=="Y")
+food_count<-food_count%>%group_by(FoodType)%>%count(Availability)%>%select(-2)
+
+ggplot(food_count, aes(x=reorder(FoodType,n),y=n,color=n)) +geom_point() +coord_flip() +theme_bw()+scale_colour_gradient(low="#66cd00",high="#458b00")+labs(x="Number of products",y="Product Name",color="Products Count")+ggtitle("Number of induvidial products sold in farmer markets")+theme(text = element_text(size = 14))+theme(plot.title = element_text(hjust = 0.5))
+
+
+ggsave("productsnn.png",height = 7,width = 17.5,dpi=300)
+```
